@@ -62,3 +62,23 @@ ALTER TABLE "task_owner" ADD CONSTRAINT "task_owner_fk1" FOREIGN KEY ("task_id")
 
 ALTER TABLE "agenda" ADD CONSTRAINT "agenda_fk0" FOREIGN KEY ("task_id") REFERENCES "task"("task_id");
 
+--create select function 
+CREATE OR REPLACE FUNCTION getTask()
+RETURNS SETOF task AS $$
+BEGIN
+  RETURN QUERY SELECT * FROM task;
+END
+$$ LANGUAGE plpgsql;
+
+--getUser 
+CREATE OR REPLACE FUNCTION getUser()
+RETURNS SETOF users AS $$
+BEGIN
+  RETURN QUERY SELECT * FROM users;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+--how to run the function 
+SELECT * FROM fx();
