@@ -82,3 +82,10 @@ $$ LANGUAGE plpgsql;
 
 --how to run the function 
 SELECT * FROM fx();
+
+//--task getter
+select title,description, duedate, first_name, last_name, email from task 
+join task_owner 
+on task.task_id=task_owner.task_id
+join users
+on task_owner.user_id=users.user_id

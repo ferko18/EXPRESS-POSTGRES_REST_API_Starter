@@ -1,18 +1,18 @@
 //dependecies
 const express = require("express"),
   helmet = require("helmet"),
-  cors = require("cors");
+  cors = require("cors"); logger= require("morgan")
 
 //server to point to
 const server = express();
-
+server.use(logger('combined'))
 //connect to database
 const client = require("./database/connection");
 client.connect(err => {
   if (err) {
     throw err;
   }
-  console.log("connected postgres database...");
+  console.log(`\nconnected postgres database...\n`);
 });
 
 //use dependencies/middlewares

@@ -23,6 +23,18 @@ async function getOneUser(id) {
   return res.rows;
 }
 
+//get user by email 
+async function getUserByEmail(email)
+{
+  const query = {
+    name: "getUserByEmail",
+    text: "select * from users where email=$1",
+    values: [email]
+  };
+  const res = await pool.query(query);
+  return res.rows;
+}
+
 //add user , note that the returing * statment returns the inserted record
 
 async function addUser(first_name, last_name, email, password) {
@@ -51,4 +63,4 @@ async function deleteUser(id) {
     return deleted.rows
 }
 
-module.exports = { getAllUsers, getOneUser, addUser , updateUser, deleteUser};
+module.exports = { getAllUsers, getOneUser, addUser , updateUser, deleteUser, getUserByEmail};
