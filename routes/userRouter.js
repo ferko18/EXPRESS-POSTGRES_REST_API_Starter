@@ -3,6 +3,8 @@ const router = require("express").Router();
 const db = require("../database/models/userModel");
 const bcrypt = require("bcrypt");
 const Joi = require("@hapi/joi");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 //https://www.thepolyglotdeveloper.com/2015/05/use-regex-to-test-password-strength-in-javascript/   --for stronger validation
 //define schema for validation
@@ -134,7 +136,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-//login endpoint
+//login endpoint---rate limiting should be added
 //post endpoint
 //find user by email-->found--->hash password from req--->match---> send back tokken
 //validate user using , check if user in db
@@ -148,10 +150,29 @@ router.post("/login", async (req, res) => {
     var user = await db.getUserByEmail(email);
     if (user.length !== 0) {
       const { password } = req.body;
-      // console.log(user[0].password)--this comes from the database
+      //console.log(user[0])
       const match = await bcrypt.compare(password, user[0].password);
       if (match) {
-        res.status(200).json("logged in");
+        const payload = {
+          user_id: user[0].user_id
+        };
+        jwt.sign(
+          payload,
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "1h"
+          },
+          (err, token) => {
+            if (err) {
+              res.json({
+                message: "can't process your request, try again latter"
+              });
+            } else {
+              res.status(200).json({ token });
+            }
+          }
+        );
+        // res.status(200).json("logged in");
       } else {
         res.json({ message: "invalid credentials!" });
       }
