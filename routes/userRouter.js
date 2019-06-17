@@ -5,9 +5,11 @@ const bcrypt = require("bcrypt");
 const Joi = require("@hapi/joi");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const passport = require('passport');
+const passportconf = require('./protected')
 
 //https://www.thepolyglotdeveloper.com/2015/05/use-regex-to-test-password-strength-in-javascript/   --for stronger validation
-//define schema for validation
+//define schema for signup validation
 const schema = Joi.object().keys({
   first_name: Joi.string()
     .alphanum()
@@ -25,8 +27,17 @@ const schema = Joi.object().keys({
     .required()
 });
 
+//define schema for signin validation
+const schema_signin = Joi.object().keys({
+ 
+  password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
+  email: Joi.string()
+    .email({ minDomainSegments: 2 })
+    .required()
+});
+
 //get all users
-router.get("/", async (req, res) => {
+router.get("/", passport.authenticate('jwt', {session:false}) ,async (req, res) => {
   try {
     const users = await db.getAllUsers();
     res.status(200).json(users);
@@ -37,7 +48,7 @@ router.get("/", async (req, res) => {
 
 //get user by id
 
-router.get("/:id", async (req, res) => {
+router.get("/:id",passport.authenticate('jwt', {session:false}), async (req, res) => {
   try {
     const id = req.params.id;
     const user = await db.getOneUser(id);
@@ -77,7 +88,7 @@ router.get("/:id", async (req, res) => {
 
 //add user with validation --using @hapi/joi
 
-router.post("/", async (req, res) => {
+router.post("/signup", async (req, res) => {
   const validatedbody = Joi.validate(req.body, schema);
   if (!validatedbody.error) {
     const { email } = req.body;
@@ -99,7 +110,7 @@ router.post("/", async (req, res) => {
 
 //update user needs validation ******todo
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", passport.authenticate('jwt', {session:false}),async (req, res) => {
   try {
     const id = req.params.id;
     const { first_name, last_name, email, password } = req.body;
@@ -122,7 +133,7 @@ router.put("/:id", async (req, res) => {
 
 //update user with validation
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", passport.authenticate('jwt', {session:false}),async (req, res) => {
   try {
     const id = req.params.id;
     const userid = await db.deleteUser(id);
@@ -144,7 +155,7 @@ router.delete("/:id", async (req, res) => {
 //respond with jwt--user then stores and uses the the token
 
 router.post("/login", async (req, res) => {
-  const validatedbody = Joi.validate(req.body, schema);
+  const validatedbody = Joi.validate(req.body, schema_signin);
   if (!validatedbody.error) {
     const { email } = req.body;
     var user = await db.getUserByEmail(email);
@@ -156,23 +167,18 @@ router.post("/login", async (req, res) => {
         const payload = {
           user_id: user[0].user_id
         };
-        jwt.sign(
-          payload,
-          process.env.JWT_SECRET,
-          {
-            expiresIn: "1h"
-          },
-          (err, token) => {
-            if (err) {
-              res.json({
-                message: "can't process your request, try again latter"
-              });
-            } else {
-              res.status(200).json({ token });
-            }
+        const options = {
+          expiresIn: "1h"
+        };
+        jwt.sign(payload, process.env.JWT_SECRET, options, (err, token) => {
+          if (err) {
+            res.json({
+              message: "can't process your request, try again latter"
+            });
+          } else {
+            res.status(200).json({ token });
           }
-        );
-        // res.status(200).json("logged in");
+        });
       } else {
         res.json({ message: "invalid credentials!" });
       }
