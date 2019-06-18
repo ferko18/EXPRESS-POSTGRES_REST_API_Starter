@@ -5,8 +5,9 @@ const bcrypt = require("bcrypt");
 const Joi = require("@hapi/joi");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const passport = require('passport');
-const passportconf = require('./protected')
+const passport = require("passport");
+const passportconf = require("./protected");
+// const jwtdecode = require('jwt-decode');
 
 //https://www.thepolyglotdeveloper.com/2015/05/use-regex-to-test-password-strength-in-javascript/   --for stronger validation
 //define schema for signup validation
@@ -29,7 +30,6 @@ const schema = Joi.object().keys({
 
 //define schema for signin validation
 const schema_signin = Joi.object().keys({
- 
   password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
   email: Joi.string()
     .email({ minDomainSegments: 2 })
@@ -37,31 +37,50 @@ const schema_signin = Joi.object().keys({
 });
 
 //get all users
-router.get("/", passport.authenticate('jwt', {session:false}) ,async (req, res) => {
-  try {
-    const users = await db.getAllUsers();
-    res.status(200).json(users);
-  } catch (err) {
-    res.status(500).json({ message: "could not retrive results" });
+router.get(
+  "/",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const users = await db.getAllUsers();
+      res.status(200).json(users);
+    } catch (err) {
+      res.status(500).json({ message: "could not retrive results" });
+    }
   }
+);
+
+//logout endpoint 
+router.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
 });
+
+// router.get('/test' ,(req, res) =>{
+//   var x = jwtdecode(req.headers.authorization)
+//   res.send(x)
+//   })
 
 //get user by id
 
-router.get("/:id",passport.authenticate('jwt', {session:false}), async (req, res) => {
-  try {
-    const id = req.params.id;
-    const user = await db.getOneUser(id);
+router.get(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const user = await db.getOneUser(id);
 
-    if (user.length === 0) {
-      res.status(404).json({ message: "user not found" });
-    } else {
-      res.status(200).json(user);
+      if (user.length === 0) {
+        res.status(404).json({ message: "user not found" });
+      } else {
+        res.status(200).json(user);
+      }
+    } catch (err) {
+      res.status(500).json({ message: "could not retrive results" });
     }
-  } catch (err) {
-    res.status(500).json({ message: "could not retrive results" });
   }
-});
+);
 
 // add user minimal validation --not for production
 
@@ -110,42 +129,50 @@ router.post("/signup", async (req, res) => {
 
 //update user needs validation ******todo
 
-router.put("/:id", passport.authenticate('jwt', {session:false}),async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { first_name, last_name, email, password } = req.body;
-    const user = await db.updateUser(
-      id,
-      first_name,
-      last_name,
-      email,
-      password
-    );
-    if (user.length === 0) {
-      res.status(404).json({ message: "user not found" });
-    } else {
-      res.status(200).json(user);
+router.put(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const { first_name, last_name, email, password } = req.body;
+      const user = await db.updateUser(
+        id,
+        first_name,
+        last_name,
+        email,
+        password
+      );
+      if (user.length === 0) {
+        res.status(404).json({ message: "user not found" });
+      } else {
+        res.status(200).json(user);
+      }
+    } catch (err) {
+      res.status(500).json({ message: "can't update user" });
     }
-  } catch (err) {
-    res.status(500).json({ message: "can't update user" });
   }
-});
+);
 
 //update user with validation
 
-router.delete("/:id", passport.authenticate('jwt', {session:false}),async (req, res) => {
-  try {
-    const id = req.params.id;
-    const userid = await db.deleteUser(id);
-    if (user.length === 0) {
-      res.status(404).json({ message: "user not found" });
-    } else {
-      res.status(200).json(userid);
+router.delete(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+      const userid = await db.deleteUser(id);
+      if (user.length === 0) {
+        res.status(404).json({ message: "user not found" });
+      } else {
+        res.status(200).json(userid);
+      }
+    } catch (err) {
+      res.status(500).json({ message: "can't delete user" });
     }
-  } catch (err) {
-    res.status(500).json({ message: "can't delete user" });
   }
-});
+);
 
 //login endpoint---rate limiting should be added
 //post endpoint
@@ -190,4 +217,8 @@ router.post("/login", async (req, res) => {
     res.json({ message });
   }
 });
+
+
+
+
 module.exports = router;

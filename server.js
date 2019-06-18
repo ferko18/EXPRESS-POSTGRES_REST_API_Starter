@@ -20,9 +20,11 @@ server.use(helmet(), express.json(), cors());
 
 //Routes
 const usersRouter = require("./routes/userRouter");
+const taskRouter = require("./routes/taskRouter")
 
 //API Endpoints
 server.use("/api/users", usersRouter);
+server.use("/api/tasks", taskRouter);
 
 //Default Endpoint
 server.get("/", (req, res) => {

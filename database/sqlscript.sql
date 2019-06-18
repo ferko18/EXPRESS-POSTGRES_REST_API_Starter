@@ -35,10 +35,9 @@ CREATE TABLE "envitee" (
 
 
 CREATE TABLE "task_owner" (
-	"owner_id" serial NOT NULL,
 	"user_id" int NOT NULL,
 	"task_id" int NOT NULL,
-	CONSTRAINT "task_owner_pk" PRIMARY KEY ("owner_id")
+	CONSTRAINT "task_owner_pk" PRIMARY KEY ("user_id","task_id")
 ) WITH (
   OIDS=FALSE
 );
@@ -48,10 +47,14 @@ CREATE TABLE "task_owner" (
 CREATE TABLE "agenda" (
 	"agenda_id" serial NOT NULL,
 	"task_id" int NOT NULL,
+	"agenda" varchar(255) NOT NULL,
 	CONSTRAINT "agenda_pk" PRIMARY KEY ("agenda_id")
 ) WITH (
   OIDS=FALSE
 );
+
+
+
 
 
 ALTER TABLE "envitee" ADD CONSTRAINT "envitee_fk0" FOREIGN KEY ("user_id") REFERENCES "users"("user_id");
@@ -61,6 +64,7 @@ ALTER TABLE "task_owner" ADD CONSTRAINT "task_owner_fk0" FOREIGN KEY ("user_id")
 ALTER TABLE "task_owner" ADD CONSTRAINT "task_owner_fk1" FOREIGN KEY ("task_id") REFERENCES "task"("task_id");
 
 ALTER TABLE "agenda" ADD CONSTRAINT "agenda_fk0" FOREIGN KEY ("task_id") REFERENCES "task"("task_id");
+
 
 --create select function 
 CREATE OR REPLACE FUNCTION getTask()
