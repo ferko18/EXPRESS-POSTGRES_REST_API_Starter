@@ -1,5 +1,4 @@
 const pool = require("../connection.js");
-
 //add a task and update task_owner table
 //can be achieved with cte , triggers or async code here , the problem with doing it in javascript is  that if one of the insert fails, your data 
 //won't be consistent. but cool to do it in JS
@@ -20,4 +19,22 @@ async function addTaskOwner(user_id, task_id)
     return add.rows
 }
 
-module.exports ={addTask, addTaskOwner}
+async function getTask(user_id)
+{
+  const text = 'select task.task_id, title, description, duedate, user_id from task join task_owner on task.task_id=task_owner.task_id where user_id = $1'
+  const values = [user_id]
+  const gettask = await pool.query(text, values);
+  return gettask.rows
+}
+
+async function getTaskbyId(task_id){
+   const text = 'select task.task_id, title, description, duedate, user_id from task join task_owner on task.task_id=task_owner.task_id where task.task_id = $1'
+   const values = [task_id]
+   const gettaskbyid = await pool.query(text, values);
+   return gettaskbyid.rows
+}
+
+async function deleteTask (task_id){
+  
+}
+module.exports ={addTask, addTaskOwner, getTask, getTaskbyId}

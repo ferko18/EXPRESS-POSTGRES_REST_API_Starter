@@ -19,10 +19,13 @@ client.connect(err => {
 server.use(helmet(), express.json(), cors());
 
 //Routes
+const register = require ('./routes/registerandLogin')
 const usersRouter = require("./routes/userRouter");
-const taskRouter = require("./routes/taskRouter")
+const taskRouter = require("./routes/taskRouter");
+
 
 //API Endpoints
+server.use('/', register);
 server.use("/api/users", usersRouter);
 server.use("/api/tasks", taskRouter);
 
