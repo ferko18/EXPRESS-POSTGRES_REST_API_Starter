@@ -7,7 +7,7 @@ const express = require("express"),
 const server = express();
 server.use(logger('combined'))
 //connect to database
-const client = require("./database/connection");
+const {client} = require("./database/connection");
 client.connect(err => {
   if (err) {
     throw err;

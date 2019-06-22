@@ -55,7 +55,7 @@ router.get(
       // console.log(tasks)
       res.json(tasks);
     } catch (error) {
-      res.json({ message: "could not retrive results" });
+      res.status(404).json({ message: "could not retrive results" });
     }
   }
 );
@@ -76,16 +76,59 @@ router.get(
         res.status(200).json(task);
       }
     } catch (error) {
-      res.json({ message: "could not get task" });
+      res.status(404).json({ message: "could not get task" });
     }
   }
 );
 
 
 //delete task
+router.delete(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const id = parseInt((req.params.id));
+      const taskid = await db.getTaskbyId(id);
+      if (taskid.length === 0) {
+        res.status(404).json({ message: "task not found" });
+      } else {
+        db.deleteTask(id)
+        res.status(200).json(taskid[0].task_id);
+      }
+    } catch (err) {
+      res.status(500).json({ message: "can't delete task" });
+    }
+  }
+);
+
+
 
 
 
 //edit task
+
+router.put ("/:id", passport.authenticate("jwt", {session:false}), async (req, res)=>{
+  const validatedbody = Joi.validate(req.body, schema);
+  if (!validatedbody.error) {
+    const { title, description, duedate } = req.body;
+    var id = req.params.id 
+    var task = await db.getTaskbyId(id)
+    if (task.length===0)
+    {
+      res.status(404).json({message: 'task not found'})
+    }
+    else {
+      db.updateTask(id, title, description, duedate)
+      updatedTask= await db.getTaskbyId(task[0].task_id)
+      res.status(200).json(updatedTask)
+    }
+   
+  } else {
+    const message = validatedbody.error.details[0].message;
+    res.json({ message });
+  }
+
+} )
 
 module.exports = router;

@@ -1,5 +1,5 @@
 
-const pool = require("../connection.js");
+const {pool} = require("../connection.js");
 
 //get all users
 async function getAllUsers() {
